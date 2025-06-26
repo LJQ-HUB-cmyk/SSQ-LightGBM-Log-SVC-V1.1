@@ -65,12 +65,22 @@ venv.bak/
 *.swo
 
 # Data files (可以根据需要调整)
-*.csv
+# *.csv  # 注释掉，允许重要CSV文件被跟踪
 *.xlsx
 *.xls
-*.json
 *.pkl
 *.pickle
+
+# 排除特定的临时数据文件，但保留重要的数据文件
+shuangseqiu_processed.csv  # 缓存文件，可以重新生成
+temp_*.csv
+*_backup.csv
+*_temp.csv
+
+# 排除敏感配置文件，但保留必要的配置
+config.json
+local_config.json
+secret_*.json
 
 # Logs
 *.log
@@ -84,14 +94,18 @@ venv.bak/
 ehthumbs.db
 Thumbs.db
 
-# 项目特定文件
-shuangseqiu.csv
-shuangseqiu_processed.csv
-ssq_analysis_output_*.txt
-latest_ssq_*.txt
+# 项目特定临时文件
+ssq_analysis_output_*.txt  # 分析报告文件过多时自动清理
 *.png
 *.jpg
 *.gif
+
+# 但允许以下重要文件被跟踪：
+# - shuangseqiu.csv (主要数据文件)
+# - latest_ssq_analysis.txt (最新分析报告)
+# - latest_ssq_calculation.txt (最新计算结果)
+# - requirements.txt (依赖配置)
+# - *.py (Python源码)
 
 # 保留示例配置文件，但排除实际配置
 config.py

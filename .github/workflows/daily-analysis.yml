@@ -93,30 +93,48 @@ jobs:
       run: |
         set -e
         echo "--- Staging and Committing Files ---"
+        
+        # 首先添加已跟踪文件的更改
         git add -u
+        
+        # 定义需要提交的文件列表
         files_to_commit=(
           "shuangseqiu.csv"
           "latest_ssq_analysis.txt"
           "latest_ssq_calculation.txt"
           "weights_config.json"
         )
+        
+        # 逐个检查并添加文件，处理.gitignore的情况
         for file_path in "${files_to_commit[@]}"; do
           if [ -f "$file_path" ]; then
-            git add "$file_path"
+            # 检查文件是否被.gitignore忽略
+            if git check-ignore "$file_path" > /dev/null 2>&1; then
+              echo "Warning: $file_path is ignored by .gitignore, force adding..."
+              git add -f "$file_path"
+            else
+              git add "$file_path"
+            fi
             echo "Staged: $file_path"
           else
             echo "Skipping (not found): $file_path"
           fi
         done
+        
+        # 添加新的分析报告文件
         find . -maxdepth 1 -name 'ssq_analysis_output_*.txt' -print0 | xargs -0 -r git add
         echo "Staged any new ssq_analysis_output_*.txt files."
+        
+        # 显示当前状态
         echo "Current git status:"
         git status --porcelain
+        
+        # 检查是否有更改需要提交
         if git diff --staged --quiet; then
           echo "No changes to commit."
         else
-          git commit -m "Auto update: Data and Analysis results $(date +'%Y-%m-%d %H:%M:%S %Z')"
-          echo "Changes committed."
+          git commit -m "🤖 Auto update: Data and Analysis results $(date +'%Y-%m-%d %H:%M:%S %Z')"
+          echo "Changes committed successfully."
         fi
         echo "--- Finished Staging and Committing ---"
 
