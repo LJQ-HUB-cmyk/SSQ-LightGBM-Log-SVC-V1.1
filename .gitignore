@@ -66,7 +66,6 @@ venv.bak/
 
 # Data files (可以根据需要调整)
 *.csv
-*.txt
 *.xlsx
 *.xls
 *.json

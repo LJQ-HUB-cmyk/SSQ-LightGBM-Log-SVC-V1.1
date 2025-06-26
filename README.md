@@ -255,3 +255,33 @@ ENABLE_REVERSE_REFILL = True        # 移除后补充组合
 ⭐ **如果这个项目对您有帮助，请给我们一个Star！** ⭐
 
 💰 **声明**: 本项目仅供学习和研究使用，请理性投注，量力而行！
+
+
+项目运行后的日常更新：
+
+# 1. 查看文件状态
+git status
+
+# 2. 添加修改的文件
+git add .
+
+# 3. 提交更改
+git commit -m "📊 新增最近5期内开出过的号码 + 6期内没有开出过号码"
+
+# 4. 推送到远程仓库
+git push origin main
+🔧 常见Git命令
+# 查看提交历史
+git log --oneline
+
+# 查看远程仓库信息
+git remote -v
+
+# 拉取最新更改
+git pull origin main
+
+# 查看分支
+git branch -a
+
+# 创建新分支
+git checkout -b feature/new-algorithm
