@@ -6,6 +6,13 @@ on:
     - cron: '0 22 * * 0,2,4'
   workflow_dispatch:
 
+# 为GitHub Actions添加必要的权限
+permissions:
+  contents: write        # 允许读写仓库内容
+  actions: read         # 允许读取Actions
+  checks: write         # 允许写入检查状态
+  pull-requests: write  # 允许操作PR（如果需要）
+
 jobs:
   daily_process:
     runs-on: ubuntu-latest
@@ -140,27 +147,46 @@ jobs:
 
     - name: Pull remote changes to sync before push
       run: |
+        set -e
+        echo "--- Syncing with Remote Repository ---"
         echo "Current branch: $(git rev-parse --abbrev-ref HEAD)"
         echo "Target branch from GITHUB_REF_NAME: ${{ github.ref_name }}"
+        echo "Remote URL: $(git remote get-url origin)"
+        
+        # 配置Git认证（为pull操作）
+        git config --local url."https://oauth2:${{ secrets.GITHUB_TOKEN }}@github.com/".insteadOf "https://github.com/"
+        
         # Set pull strategy to merge (default, but explicit) or rebase
-        # For automated processes, merge is often safer if conflicts are unlikely
-        # or if a merge commit is acceptable.
         git config pull.rebase false # Use 'true' for rebase, 'false' for merge
         
-        # Pull changes from the remote branch.
-        # This will attempt to merge remote changes. If there are conflicts
-        # that Git cannot auto-resolve, this step will fail, and the workflow will stop.
-        # Using --no-edit to avoid an editor opening for the merge commit message.
-        git pull origin ${{ github.ref_name }} --no-edit
-        echo "Successfully pulled and merged remote changes (if any)."
-      # Optional: Add retry logic or specific conflict handling if needed,
-      # but generally, failing on conflict is the safest default for CI.
+        # 检查远程分支是否存在
+        if git ls-remote --exit-code --heads origin ${{ github.ref_name }} >/dev/null 2>&1; then
+          echo "Remote branch exists, pulling changes..."
+          git pull origin ${{ github.ref_name }} --no-edit
+          echo "Successfully pulled and merged remote changes (if any)."
+        else
+          echo "Remote branch does not exist, will create it on first push."
+        fi
+        echo "--- Finished Syncing ---"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Push changes
-      uses: ad-m/github-push-action@v0.8.0
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        # Use github.ref_name to get the short branch name (e.g., "main")
-        # This is generally more robust for git commands than the full github.ref (e.g., "refs/heads/main")
-        branch: ${{ github.ref_name }}
-        # force: false # Default. Do not force push unless you absolutely need to and understand the consequences.
+      run: |
+        set -e
+        echo "--- Pushing Changes to Remote ---"
+        
+        # 配置Git认证使用GITHUB_TOKEN
+        git config --local url."https://oauth2:${{ secrets.GITHUB_TOKEN }}@github.com/".insteadOf "https://github.com/"
+        
+        # 检查是否有更改需要推送
+        if git diff --quiet HEAD^ HEAD 2>/dev/null || [ -z "$(git log --oneline origin/${{ github.ref_name }}..HEAD 2>/dev/null)" ]; then
+          echo "No changes to push or already up to date."
+        else
+          echo "Pushing changes to ${{ github.ref_name }}..."
+          git push origin ${{ github.ref_name }}
+          echo "Successfully pushed changes to remote repository."
+        fi
+        echo "--- Finished Pushing Changes ---"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

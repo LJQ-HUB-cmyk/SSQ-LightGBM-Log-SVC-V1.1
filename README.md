@@ -316,6 +316,7 @@ git log --graph --oneline --all
 
 ### ⚠️ **工作流程注意事项**
 
+#### 🚫 **常见错误1: .gitignore冲突**
 如果GitHub Actions报错 "ignored by .gitignore"：
 
 ```bash
@@ -329,4 +330,42 @@ git push origin main
 
 # 方法3: 检查.gitignore配置
 cat .gitignore | grep -E "\.csv|\.txt"
+```
+
+#### 🔐 **常见错误2: 权限问题**
+如果GitHub Actions报错 "Permission denied" 或 "403 error"：
+
+**错误信息示例**：
+```
+remote: Permission to LJQ-HUB-cmyk/SSQ-LightGBM-Log-SVC-V1.1.git denied to github-actions[bot].
+fatal: unable to access 'https://github.com/.../': The requested URL returned error: 403
+```
+
+**解决方案**：
+1. **检查仓库设置**：
+   - 进入 GitHub 仓库页面
+   - Settings → Actions → General
+   - 确保 "Workflow permissions" 设置为 "Read and write permissions"
+
+2. **检查workflow权限声明**：
+   ```yaml
+   permissions:
+     contents: write    # 允许读写仓库内容
+     actions: read     # 允许读取Actions
+     checks: write     # 允许写入检查状态
+   ```
+
+3. **使用Personal Access Token (备选方案)**：
+   - 在 GitHub 生成 PAT (Settings → Developer settings → Personal access tokens)
+   - 在仓库 Secrets 中添加 PAT
+   - 在 workflow 中使用 PAT 替代 GITHUB_TOKEN
+
+**手动测试权限**：
+```bash
+# 检查当前用户权限
+git config --list | grep user
+git remote -v
+
+# 测试推送权限
+git push origin main --dry-run
 ```
