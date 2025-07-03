@@ -64,13 +64,13 @@ jobs:
           echo "No ssq_analysis_output_*.txt files found, or latest_report_file variable is empty. Skipping copy."
         fi
 
-    - name: Clean old reports - keep only latest 3
+    - name: Clean old reports - keep only latest 10
       run: |
         set -e
         echo "--- Cleaning old analysis reports ---"
         mapfile -t reports < <(find . -maxdepth 1 -name 'ssq_analysis_output_*.txt' -print0 | xargs -0 ls -1 | sort)
         count=${#reports[@]}
-        keep=3
+        keep=10
         echo "Found $count reports. Configured to keep $keep latest."
         if [ "$count" -gt "$keep" ]; then
           num_to_delete=$((count - keep))
